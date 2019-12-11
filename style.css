@@ -1,0 +1,118 @@
+  /* color pallete
+https://www.color-hex.com/color-palette/83132
+#43ae70	(67,174,112)
+#ffffff	(255,255,255)
+#ff9a00	(255,154,0)
+#43aea6	(67,174,166)
+#9f70d0	(159,112,208) */
+
+* {
+  font-family: "IBM Plex Mono", monospace;
+	box-sizing: border-box;
+	color: #43aea6;
+}
+
+html {
+	height: 100%;
+	overflow: hidden;
+}
+
+#info {
+	margin: 0;
+	z-index: 1;
+	text-align: center;
+	opacity: 1;
+	transition: opacity 0.3s;
+	width: 100%;
+	height: 100%;
+	padding: 15vh 35%;
+	background-color: #fff;
+}
+
+h1 {
+	font-size: 3.5rem;
+}
+
+body {
+	margin: 0;
+	height: 100%;
+	overflow: hidden;
+}
+
+#container {
+	/* max-width: 500px; */
+	margin: 0 auto;
+	height: 100%;
+	overflow: hidden;
+}
+
+textarea#text-area {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 50%;
+	height: 100vh;
+	border: none;
+	outline: none;
+	background-color: rgba(0, 0, 0, 0);
+	background-blend-mode: normal;
+	resize: none;
+	font-size: 25px;
+	line-height: 32px;
+	padding: 40px 40px;
+	z-index: -1;
+}
+
+::-moz-selection {
+	color: #fff;
+  background-color: #B900FF;
+  /* text-shadow: none; */
+}
+::selection {
+	color: #fff;
+	background-color: #B900FF;
+  /* text-shadow: none; */
+}
+
+button {
+	border: 1px solid;
+	border-color: #B900FF;
+  font-size: 1rem;
+  height: 40px;
+  width: 100px;
+	color: #B900FF;
+	background-color: #fff;
+}
+button:hover {
+	border: 1px solid;
+	border-color: #fff;
+	color: #fff;
+	background-color: #B900FF;
+}
+
+#send {
+	height: 40px;
+  width: 150px;
+	position: absolute;
+	top: calc(50vh - 20px);
+	left: calc(50% - 75px);
+	z-index: -1;
+}
+
+#p5-canvas {
+	width: 50%;
+	position: absolute;
+	top: 0;
+	left: 50%;
+	z-index: -1;
+}
+
+
+@media only screen and (max-width: 680px) {
+	h1 {
+		font-size: 2rem;
+	}
+	#info {
+		padding: 10vh 10%;
+	}
+}

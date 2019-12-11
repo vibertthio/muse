@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>Muse</title>
+	<meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<link href="https://fonts.googleapis.com/css?family=IBM+Plex+Mono|VT323&display=swap" rel="stylesheet" />
+	<link rel="icon" type="image/png" sizes="32x32"
+		href="https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/240/apple/225/thumbs-up-sign_1f44d.png" />
+
+	<!-- import the webpage's stylesheet -->
+	<link rel="stylesheet" href="./style.css" />
+
+	<!-- import the webpage's javascript file -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/addons/p5.dom.min.js"></script>
+	<script src="https://unpkg.com/ml5@0.3.1/dist/ml5.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/13.0.1/Tone.min.js"></script>
+	<script src="./rita-full.min.js"></script>
+	<script src="./StartAudioContext.js"></script>
+	<script src="./soundEngine.js"></script>
+	<script src="./script.js" defer></script>
+</head>
+
+<body>
+	<div id="container">
+		<div id="info">
+			<h1>Muse</h1>
+
+			<h2>✍️ Poem → 🎵 Music</h2>
+			<p>
+				The relationshiop between language and music is always fascinating. We want to think deeper about it.
+				Muse is a small web game that can transform your poem into music based on some simple rules.
+			</p>
+			<button id="play-btn">play</button>
+			<p>
+				<a href="https://github.com/vibertthio/web-olympic">👩‍💻 Source Code</a>
+				<br />
+				<a href="https://vibertthio.com/portfolio/">😀 About Me</a>
+			</p>
+		</div>
+		<div id="p5-canvas"></div>
+
+		<button id="send">Translate →</button>
+
+		<textarea id='text-area'></textarea>
+
+	</div>
+</body>
+
+</html>
