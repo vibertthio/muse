@@ -1,4 +1,4 @@
-# Muse - Text to Music
+# Muse: ✍️ Poem → 🎵 Music
 
 created by [Sylvan](https://squidgetx.github.io/) & [Vibert](https://vibertthio.com/portfolio/)
 
