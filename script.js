@@ -114,7 +114,8 @@ function draw() {
 						const t = textObjects[i][j]
 						t.draw()
 						if (prevX && prevY) {
-							stroke(255)
+							stroke(255, 150)
+							strokeWeight(5)
 							line(prevX, prevY, t.x, t.y)
 						}
 						prevX = t.x
@@ -181,7 +182,7 @@ async function greet(value) {
 		return ret
 	})
 
-	// playingTranslation = true
+	playingTranslation = true
 	await calculate(value)
 	play(tokens, tokenPitches, tokenRhythms, tokenHarmonies);
 }
@@ -231,7 +232,8 @@ function play(tokens, tokenPitches, tokenRhythms, tokenHarmonies) {
 			// textObjects[currentLineIndex][currentWordIndex].randomizePosition()
 			const x = width * map(time, startTime, startTime + endTime, 0.1, 0.9)
 			const y = height * map(val.note._val, 52, 64, 0.9, 0.1)
-			textObjects[currentLineIndex][currentWordIndex].move(x, y)
+			const l = val.length
+			textObjects[currentLineIndex][currentWordIndex].move(x, y, l)
 			console.log(`${textStr} [${currentLineIndex}] [${currentWordIndex}]`)
 			console.log(`t: ${time} note: ${val.note._val}`)
 		}
@@ -269,6 +271,7 @@ class Text {
 		this.str = str
 		this.x = x
 		this.y = y
+		this.l = 0
 		this.final = { x, y }
 		this.harmony
 		this.color = 'rgba(255, 255, 255, 1)'
@@ -280,23 +283,46 @@ class Text {
 
 		translate(this.x, this.y)
 		if (this.harmony) {
-			fill(67, 174, 166, 100)
+			fill(67, 174, 166, 200)
 			noStroke()
 			ellipse(0, 0, 50, 50)
 			for (let i = 0; i < this.harmony.length; i++) {
-				const h = map(this.harmony[i], 0, 24, this.y, 0)
-				ellipse(0, -h, 50, 50)
+				const h = map(this.harmony[i], 0, 28, 0, this.y)
+				ellipse(0, -h, 50 - i * 5, 50 - i * 5)
 			}
 		}
+
+		push()
+		rotate(-0.2)
+		fill('#e5ff00')
+		noStroke()
+		rect(0, 0, this.l * 300, 10)
+
+		translate(this.l * 300, 0)
+
+		rotate(0.2)
+		if (this.harmony) {
+			fill('rgba(255, 154, 0, 0.9)')
+		} else {
+			fill('rgba(67, 174, 112, 0.9)')
+		}
+		noStroke()
+		rect(0, 0, this.str.length * fontSize, lineHeight * 0.8)
+
 		fill(this.color)
 		noStroke()
 		text(this.str, 0, 0)
+		pop()
+
 		pop()
 	}
 
 	update() {
 		this.x += (this.final.x - this.x) * 0.1
 		this.y += (this.final.y - this.y) * 0.1
+		if (this.final.l) {
+			this.l += (this.final.l - this.l) * 0.1
+		}
 	}
 
 	randomizePosition() {
@@ -304,10 +330,11 @@ class Text {
 		this.final.y = random(0, height - 200)
 	}
 
-	move(x, y) {
+	move(x, y, l) {
 		const range = 30
 		this.final.x = x + random(-range, range)
 		this.final.y = y + random(-range, range)
+		this.final.l = l
 	}
 
 
