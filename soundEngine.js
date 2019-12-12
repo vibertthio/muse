@@ -1,4 +1,5 @@
-const DEV = false
+const DEV = true
+// const DEV = false
 
 /* initialize Global state */
 let json = './wordvecs10000.json'
@@ -42,6 +43,7 @@ let part;
 function isAlphaNumeric(s) {
 	return s.match(/^[a-z0-9]+$/i) !== null;
 }
+
 
 // When the model is loaded
 function modelLoaded() {
@@ -413,6 +415,7 @@ function assignRhythms(sentence, tokens) {
 			}
 			rhythm = [ti];
 		}
+		rhythm = rhythm.map(t => (new Tone.Time(t)).toSeconds())
 		runningTime += rhythm.map(t => new Tone.Time(t)).reduce((curr, prev) => curr + prev);
 		if (pad) {
 			let delta = Tone.Time(runningTime + new Tone.Time("8n")).quantize("4n") - runningTime;
@@ -438,7 +441,7 @@ function createEvents(tokens, tokenPitches, tokenRhythms, tokenHarmonies) {
 			freq = new Tone.Frequency(tp + BASE + 12, "midi");
 		}
 		if (tokenHarmonies[i] != null) {
-			let l = new Tone.Time(tr[0])
+			let l = new Tone.Time(tr[0]).toSeconds()
 			events.push({
 				time: time,
 				note: freq,
@@ -447,51 +450,19 @@ function createEvents(tokens, tokenPitches, tokenRhythms, tokenHarmonies) {
 			});
 		}
 		tr.forEach(r => {
+			let l = new Tone.Time(r).toSeconds()
 			events.push({
 				time: time,
 				text: tokens[i],
 				note: freq,
-				length: new Tone.Time(r) * 0.75,
+				length: l * 0.75,
 			});
-			time += new Tone.Time(r);
+			time += l;
 
 		});
 	}
 
 	return [events, time]
-}
-
-function play(tokens, tokenPitches, tokenRhythms, tokenHarmonies) {
-
-	let [events, time] = createEvents(tokens, tokenPitches, tokenRhythms, tokenHarmonies)
-
-	if (part != null) {
-		// cleanup
-		part.stop();
-		part.dispose();
-	}
-	DEV && console.log('tokens', tokens);
-	DEV && console.log('events', events);
-	console.log('events', events);
-	part = new Tone.Part(
-		function (time, val) {
-			if (val.note == 'rest') {
-				// do nothing
-			} else if (val.harmony != null) {
-				polysynth.triggerAttackRelease(val.harmony.map(h => Tone.Frequency(h + BASE, "midi")), val.length, time);
-			} else {
-				synth.triggerAttackRelease(val.note, val.length, time);
-				textStr = val.text;
-				console.log(`current: ${textStr}`)
-			}
-
-		},
-		events
-	);
-	part.loopEnd = time;
-	//part.loop = true;
-	part.start();
-	Tone.Transport.start();
 }
 
 // Save State Pne: use sqrt of similarity, verb same as noun
@@ -529,9 +500,3 @@ function getChordTones(start, pitches, color = 2) {
 	);
 }
 
-async function greet(value) {
-	Tone.context.resume();
-	Tone.Transport.bpm = 100;
-	await calculate(value)
-	play(tokens, tokenPitches, tokenRhythms, tokenHarmonies);
-}

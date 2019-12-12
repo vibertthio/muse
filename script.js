@@ -17,7 +17,20 @@ And so did she.
 They searched for blue
 Their whole life through,
 Then passed right by
-And never knew.`
+And never knew.
+You cannot understand me.`
+
+
+let playing = false
+let playingTranslation = false
+let position
+let windowSize
+let currentLineIndex = 0
+let currentWordIndex = 0
+let textContent = parseText(textArea.value)
+let textObjects = []
+let lineHeight = 32
+let fontSize = 15
 
 StartAudioContext(Tone.context, "#play-btn").then(() => {
 	console.log("audio context started");
@@ -36,14 +49,7 @@ playBtn.addEventListener('click', () => {
 	}, 300)
 })
 
-
 // p5
-
-let playing = false
-let position
-let windowSize
-let textContent = parseText(textArea.value)
-
 function setup() {
 	windowSize = { width: window.innerWidth * 0.5, height: window.innerHeight }
 	let canvas = createCanvas(windowSize.width, windowSize.height)
@@ -62,13 +68,10 @@ function setup() {
 	}, '2n')
 }
 
-let lineHeight = 32
-let fontSize = 15
 
 function draw() {
 	position = transport.position.substring(0, transport.position.indexOf('.'))
 	alpha *= 0.9
-
 
 	// lineHeight = map(mouseY, 0, height, 25, 35)
 	// console.log(`line height: ${lineHeight}`)
@@ -76,19 +79,55 @@ function draw() {
 	if (playing) {
 		push()
 		drawBackground()
-		fill(255)
-		translate(40, 40)
-		for (let i = 0; i < textContent.length; i++) {
-			push()
-			for (let j = 0; j < textContent[i].length; j++) {
-				text(textContent[i][j], 0, 0)
-				translate((textContent[i][j].length + 1) * fontSize, 0)
+		if (!playingTranslation) {
+			translate(40, 40)
+			for (let i = 0; i < textContent.length; i++) {
+				push()
+
+				if (i === currentLineIndex) {
+					fill(255, 100)
+					noStroke();
+					ellipse(0, 0, 25, 25)
+				}
+
+				for (let j = 0; j < textContent[i].length; j++) {
+					fill(255)
+					text(textContent[i][j], 0, 0)
+					if (i === currentLineIndex && j === currentWordIndex) {
+						fill(255, 100)
+						noStroke();
+						ellipse(0, 0, 25, 25)
+					}
+					translate((textContent[i][j].length + 1) * fontSize, 0)
+				}
+				pop()
+				translate(0, lineHeight)
 			}
-			pop()
-			translate(0, lineHeight)
+		} else {
+			if (playingTranslation) {
+				push()
+				// translate(40, 40)
+				let prevX
+				let prevY
+				for (let i = 0; i < textObjects.length; i++) {
+					for (let j = 0; j < textObjects[i].length; j++) {
+						const t = textObjects[i][j]
+						t.draw()
+						if (prevX && prevY) {
+							stroke(255)
+							line(prevX, prevY, t.x, t.y)
+						}
+						prevX = t.x
+						prevY = t.y
+					}
+				}
+				pop()
+			}
 		}
 		pop()
-		drawTiming()
+
+
+		// drawTiming()
 	}
 }
 
@@ -116,7 +155,6 @@ function windowResized() {
 
 
 // Text Area
-
 textArea.addEventListener('input', e => {
 	textContent = parseText(textArea.value)
 })
@@ -125,8 +163,152 @@ sendBtn.addEventListener('click', () => {
 	greet(textArea.value)
 })
 
+// music
+async function greet(value) {
+	Tone.context.resume();
+	Tone.Transport.bpm = 100;
+
+	let x = 0
+	let y = 0
+	textObjects = textContent.map(line => {
+		const ret = line.map(word => {
+			const textObject = new Text(word, x + 40, y + 40)
+			x += (word.length + 1) * fontSize
+			return textObject
+		})
+		x = 0
+		y += lineHeight
+		return ret
+	})
+
+	// playingTranslation = true
+	await calculate(value)
+	play(tokens, tokenPitches, tokenRhythms, tokenHarmonies);
+}
+
+function play(tokens, tokenPitches, tokenRhythms, tokenHarmonies) {
+
+	let [events, endTime] = createEvents(tokens, tokenPitches, tokenRhythms, tokenHarmonies)
+	let startTime
+
+	if (part != null) {
+		// cleanup
+		part.stop();
+		part.dispose();
+	}
+	DEV && console.log('tokens', tokens)
+	DEV && console.log('events', events)
+	console.log('events', events)
+	resetIndexes(textContent)
+	part = new Tone.Part((time, val) => {
+		if (startTime === undefined) {
+			startTime = time
+		}
+		if (val.note == 'rest') {
+			// do nothing
+		} else if (val.harmony != null) {
+			polysynth.triggerAttackRelease(val.harmony.map(h => Tone.Frequency(h + BASE, "midi")), val.length, time);
+			textObjects[currentLineIndex][currentWordIndex].harmony = val.harmony
+
+		} else {
+			synth.triggerAttackRelease(val.note, val.length, time);
+			textStr = val.text;
+
+			// while (textStr.includes(filterText(textContent[currentLineIndex][currentWordIndex]))) {
+			while (!textContent[currentLineIndex][currentWordIndex].includes(textStr)) {
+				currentWordIndex += 1
+				if (currentWordIndex >= textContent[currentLineIndex].length) {
+					currentLineIndex += 1
+					currentWordIndex = 0
+				}
+				if (currentLineIndex >= textContent.length) {
+					currentLineIndex = 0
+				}
+				while (textContent[currentLineIndex] === undefined || textContent[currentLineIndex].length === 0) {
+					currentLineIndex += 1
+				}
+			}
+			// textObjects[currentLineIndex][currentWordIndex].randomizePosition()
+			const x = width * map(time, startTime, startTime + endTime, 0.1, 0.9)
+			const y = height * map(val.note._val, 52, 64, 0.9, 0.1)
+			textObjects[currentLineIndex][currentWordIndex].move(x, y)
+			console.log(`${textStr} [${currentLineIndex}] [${currentWordIndex}]`)
+			console.log(`t: ${time} note: ${val.note._val}`)
+		}
+	}, events);
+	part.loopEnd = endTime + 0.5;
+	// part.loop = true;
+	part.start();
+	Tone.Transport.start();
+}
+
+
+// parse texts
 function parseText(text) {
 	const matrix = text.split('\n').map(line => line.split(' ').filter(str => str !== ''))
+	resetIndexes(matrix)
 	return matrix
 }
 
+function resetIndexes(textContent) {
+	let count = 0
+	while (textContent[count] && textContent[count].length === 0) {
+		count++
+	}
+	currentLineIndex = count
+	currentWordIndex = 0
+}
+
+function filterText(s) {
+	return s.replace(/[^\w'"]/g, '')
+}
+
+
+class Text {
+	constructor(str, x, y) {
+		this.str = str
+		this.x = x
+		this.y = y
+		this.final = { x, y }
+		this.harmony
+		this.color = 'rgba(255, 255, 255, 1)'
+	}
+
+	draw() {
+		this.update()
+		push()
+
+		translate(this.x, this.y)
+		if (this.harmony) {
+			fill(67, 174, 166, 100)
+			noStroke()
+			ellipse(0, 0, 50, 50)
+			for (let i = 0; i < this.harmony.length; i++) {
+				const h = map(this.harmony[i], 0, 24, this.y, 0)
+				ellipse(0, -h, 50, 50)
+			}
+		}
+		fill(this.color)
+		noStroke()
+		text(this.str, 0, 0)
+		pop()
+	}
+
+	update() {
+		this.x += (this.final.x - this.x) * 0.1
+		this.y += (this.final.y - this.y) * 0.1
+	}
+
+	randomizePosition() {
+		this.final.x = random(0, width - 200)
+		this.final.y = random(0, height - 200)
+	}
+
+	move(x, y) {
+		const range = 30
+		this.final.x = x + random(-range, range)
+		this.final.y = y + random(-range, range)
+	}
+
+
+}
