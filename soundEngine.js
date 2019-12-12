@@ -1,5 +1,5 @@
-const DEV = true
-// const DEV = false
+// const DEV = true
+const DEV = false
 
 /* initialize Global state */
 let json = './wordvecs10000.json'

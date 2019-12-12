@@ -9,7 +9,8 @@ https://www.color-hex.com/color-palette/83132
 * {
   font-family: "IBM Plex Mono", monospace;
 	box-sizing: border-box;
-	color: #43aea6;
+	color: #43ae70;
+	/* color: #43aea6; */
 }
 
 html {

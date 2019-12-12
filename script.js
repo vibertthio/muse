@@ -23,6 +23,7 @@ You cannot understand me.`
 
 let playing = false
 let playingTranslation = false
+let finishPlayingTranslation = false
 let position
 let windowSize
 let currentLineIndex = 0
@@ -157,6 +158,10 @@ function windowResized() {
 
 // Text Area
 textArea.addEventListener('input', e => {
+	if (finishPlayingTranslation) {
+		playingTranslation = false
+		finishPlayingTranslation = false
+	}
 	textContent = parseText(textArea.value)
 })
 
@@ -190,6 +195,7 @@ async function greet(value) {
 function play(tokens, tokenPitches, tokenRhythms, tokenHarmonies) {
 
 	let [events, endTime] = createEvents(tokens, tokenPitches, tokenRhythms, tokenHarmonies)
+	events.push({ time: endTime + 1, msg: 'end' })
 	let startTime
 
 	if (part != null) {
@@ -199,9 +205,13 @@ function play(tokens, tokenPitches, tokenRhythms, tokenHarmonies) {
 	}
 	DEV && console.log('tokens', tokens)
 	DEV && console.log('events', events)
-	console.log('events', events)
 	resetIndexes(textContent)
 	part = new Tone.Part((time, val) => {
+		if (val.msg === 'end') {
+			DEV && console.log('end of music')
+			finishPlayingTranslation = true
+			return
+		}
 		if (startTime === undefined) {
 			startTime = time
 		}
@@ -234,8 +244,8 @@ function play(tokens, tokenPitches, tokenRhythms, tokenHarmonies) {
 			const y = height * map(val.note._val, 52, 64, 0.9, 0.1)
 			const l = val.length
 			textObjects[currentLineIndex][currentWordIndex].move(x, y, l)
-			console.log(`${textStr} [${currentLineIndex}] [${currentWordIndex}]`)
-			console.log(`t: ${time} note: ${val.note._val}`)
+			DEV && console.log(`${textStr} [${currentLineIndex}] [${currentWordIndex}]`)
+			DEV && console.log(`t: ${time} note: ${val.note._val}`)
 		}
 	}, events);
 	part.loopEnd = endTime + 0.5;
